@@ -112,6 +112,26 @@ event user => sub {
   return;
 };
 
+event repositories => sub {
+  my ($kernel,$self,$sender,$cmd) = @_[KERNEL,OBJECT,SENDER,ARG0];
+  my $args;
+  if ( ref $_[ARG1] eq 'HASH' ) {
+     $args = $_[ARG1];
+  }
+  else {
+     $args = { @_[ARG1..$#_] };
+  }
+  # check stuff
+  # build url
+  $args->{cmd} = lc $cmd;
+  $args->{url} = 'http://' . join '/', $self->url_path, 'repos', $args->{cmd}, $args->{user};
+  warn $args->{url}, "\n";
+  $args->{session} = $sender->ID;
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->yield( '_dispatch_cmd', $args );
+  return;
+};
+
 event _dispatch_cmd => sub {
   my ($kernel,$self,$args) = @_[KERNEL,OBJECT,ARG0];
   my $wait = flood_check( 60, 60, __PACKAGE__ );
