@@ -1,0 +1,15 @@
+use strict;
+use inc::Module::Install;
+name 'POE-Component-Github';
+author 'Chris Williams <chris@bingosnet.co.uk>';
+version_from 'lib/POE/Component/Github.pm';
+abstract_from 'lib/POE/Component/Github.pm';
+license 'perl';
+auto_license holder => 'Chris Williams';
+perl_version '5.006';
+build_requires 'Test::More' => 0.47;
+requires 'POE' => '1.005';
+requires 'MooseX::POE' => 0.201;
+requires 'POE::Component::Client::HTTP' => 0.88;
+githubmeta;
+WriteAll();
