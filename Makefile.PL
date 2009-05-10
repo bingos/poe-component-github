@@ -11,6 +11,7 @@ build_requires 'Test::More' => 0.47;
 requires 'Algorithm::FloodControl' => 0;
 requires 'POE' => '1.005';
 requires 'MooseX::POE' => 0.201;
+requires 'POE::Component::SSLify' => 0.15;
 requires 'POE::Component::Client::HTTP' => 0.88;
 requires 'JSON::Any' => 0;
 requires 'HTTP::Request::Common' => 0;
