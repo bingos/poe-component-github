@@ -99,10 +99,11 @@ event user => sub {
   # check stuff
   # build url
   $args->{cmd} = lc $cmd;
-  if ( $args->{cmd} =~ /^follow(ers|ing)$/ ) {
-    $args->{url} = 'http://' . join '/', $self->url_path, 'user', 'show', $args->{user}, $args->{cmd};
-  }
-  else {
+  SWITCH: {
+    if ( $args->{cmd} =~ /^follow(ers|ing)$/ ) {
+      $args->{url} = 'http://' . join '/', $self->url_path, 'user', 'show', $args->{user}, $args->{cmd};
+      last SWITCH;
+    }
     $args->{url} = 'http://' . join '/', $self->url_path, 'user', $args->{cmd}, $args->{user};
   }
   warn $args->{url}, "\n";
