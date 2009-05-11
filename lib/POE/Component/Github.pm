@@ -111,6 +111,7 @@ event user => sub {
 	auth     => 0,
   );
   $args->{req} = $req->request();
+  warn $args->{req}->as_string;
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );

@@ -66,12 +66,12 @@ sub request {
           last AUTHENTICATED;
        }
        # Simple stuff no values required.
-       my $data = [ login => $self->login, token => $self->token ];
+       my $data = [ 'login' => $self->login, 'token' => $self->token ];
        if ( $self->cmd =~ /^(show|follow|unfollow|pub_keys|emails)$/ ) {
 	  my $url = 'https://' . join '/', $self->api_url, 'user';
 	  return POST( join('/', $url, 'keys'), $data ) if $self->cmd eq 'pub_keys';
 	  return POST( join('/', $url, 'emails' ), $data ) if $self->cmd eq 'emails';
-	  return POST( join('/', $url, $self->cmd, $self->user ) );
+	  return POST( join('/', $url, $self->cmd, $self->user ), $data );
        }
        # These have values to pass
        if ( $self->cmd =~ /^(update|add_key|remove_key|add_email|remove_email)$/ ) {
