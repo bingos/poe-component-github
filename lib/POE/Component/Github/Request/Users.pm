@@ -74,10 +74,15 @@ sub request {
 	  return POST( join('/', $url, $self->cmd, $self->user ), $data );
        }
        # These have values to pass
-       if ( $self->cmd =~ /^(update|add_key|remove_key|add_email|remove_email)$/ ) {
+       if ( $self->cmd eq 'update' ) {
+	  my $url = 'https://' . join '/', $self->api_url, 'user';
+	  my $values = $self->values;
+	  push @{ $data }, ( "values[$_]", $values->{$_} ) for keys %{ $values };
+	  return POST( join('/', $url, 'show', $self->user), $data );
+       }
+       if ( $self->cmd =~ /^(add_key|remove_key|add_email|remove_email)$/ ) {
 	  my $url = 'https://' . join '/', $self->api_url, 'user';
 	  push @{ $data }, %{ $self->values };
-	  return POST( join('/', $url, 'show', $self->user), $data ) if $self->cmd eq 'update';
 	  my ($action,$cmd) = split /\_/, $self->cmd;
 	  return POST( join('/', $url, $cmd, $action ), $data );
        }

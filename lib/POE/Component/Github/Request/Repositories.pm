@@ -90,10 +90,22 @@ sub request {
        if ( my ($cmd) = $self->cmd =~ /^set_(private|public)$/ ) {
 	  return POST( 'https://' . join('/', $self->api_url, 'repos', 'set', $cmd, $self->repo), $data );
        }
+       if ( my ($action) = $self->cmd =~ /^(add|remove)\_collaborator$/ ) {
+          my $url = 'https://' . join '/', $self->api_url, 'repos';
+	  return POST( join('/', $url, 'collaborators', $self->repo, $action, $self->user), $data );
+       }
+       push @{ $data }, %{ $self->values };
+       my $url = 'https://' . join '/', $self->api_url, 'repos';
+       if ( $self->cmd =~ /^(create|delete)$/ ) {
+	 return POST( join('/', $url, $self->cmd, ( $self->cmd eq 'delete' ? $self->repo : () ) ), $data );
+       }
+       if ( my ($action) = $self->cmd =~ /^(add|remove)\_deploy\_key$/ ) {
+	 return POST( join('/', $url, 'key', $self->repo, $action ), $data );
+       }
     }
   }
   if ( $self->cmd eq 'search' ) {
-     return GET( $self->scheme . join '/', $self->api_url, 'repos', 'search', $self->repo );
+     return GET( $self->scheme . join '/', $self->api_url, 'repos', 'search', uri_escape( $self->repo ) );
   }
   if ( $self->cmd =~ /^(show|list|network|tags|branches)$/ ) {
      my $url = $self->scheme . join '/', $self->api_url, 'repos', 'show', $self->user;

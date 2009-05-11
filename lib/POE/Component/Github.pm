@@ -109,6 +109,7 @@ event user => sub {
 	token    => $args->{token} || $self->token,
 	user     => $args->{user},
 	auth     => 0,
+	values   => $args->{values},
   );
   $args->{req} = $req->request();
   warn $args->{req}->as_string;
