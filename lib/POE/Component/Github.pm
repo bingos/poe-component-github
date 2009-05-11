@@ -91,7 +91,7 @@ event shutdown => sub {
 };
 
 event user => sub {
-  my ($kernel,$self,$sender,$cmd) = @_[KERNEL,OBJECT,SENDER,ARG0];
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
   my $args;
   if ( ref $_[ARG1] eq 'HASH' ) {
      $args = $_[ARG1];
@@ -101,6 +101,7 @@ event user => sub {
   }
   # check stuff
   # build url
+  $args->{state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Users->new(
 	api_url  => $self->url_path,
@@ -120,7 +121,7 @@ event user => sub {
 };
 
 event repositories => sub {
-  my ($kernel,$self,$sender,$cmd) = @_[KERNEL,OBJECT,SENDER,ARG0];
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
   my $args;
   if ( ref $_[ARG1] eq 'HASH' ) {
      $args = $_[ARG1];
@@ -130,6 +131,7 @@ event repositories => sub {
   }
   # check stuff
   # build url
+  $args->{state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Repositories->new(
 	api_url  => $self->url_path,
@@ -139,6 +141,64 @@ event repositories => sub {
 	user     => $args->{user},
 	repo	 => $args->{repo},
 	auth     => 0,
+  );
+  $args->{req} = $req->request();
+  $args->{session} = $sender->ID;
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->yield( '_dispatch_cmd', $args );
+  return;
+};
+
+event commits => sub {
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
+  my $args;
+  if ( ref $_[ARG1] eq 'HASH' ) {
+     $args = $_[ARG1];
+  }
+  else {
+     $args = { @_[ARG1..$#_] };
+  }
+  # check stuff
+  # build url
+  $args->{state} = $state;
+  $args->{cmd} = lc $cmd;
+  my $req = POE::Component::Github::Request::Commits->new(
+	api_url  => $self->url_path,
+	cmd      => $args->{cmd},
+	user     => $args->{user},
+	repo	 => $args->{repo},
+	branch   => $args->{branch} || 'master',
+	file     => $args->{file},
+	commit   => $args->{commit},
+  );
+  $args->{req} = $req->request();
+  $args->{session} = $sender->ID;
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->yield( '_dispatch_cmd', $args );
+  return;
+};
+
+event object => sub {
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
+  my $args;
+  if ( ref $_[ARG1] eq 'HASH' ) {
+     $args = $_[ARG1];
+  }
+  else {
+     $args = { @_[ARG1..$#_] };
+  }
+  # check stuff
+  # build url
+  $args->{state} = $state;
+  $args->{cmd} = lc $cmd;
+  my $req = POE::Component::Github::Request::Object->new(
+	api_url  => $self->url_path,
+	cmd      => $args->{cmd},
+	user     => $args->{user},
+	repo	 => $args->{repo},
+	tree_sha => $args->{tree_sha},
+	path     => $args->{path},
+	sha      => $args->{sha},
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
@@ -179,7 +239,12 @@ event _response => sub {
   }
   else {
      my $json = $resp->content();
-     $args->{data} = $self->json->jsonToObj($json);
+     if ( $args->{state} eq 'object' and $args->{cmd} eq 'raw' ) {
+        $args->{data} = $json;
+     }
+     else {
+        $args->{data} = $self->json->jsonToObj($json);
+     }
   }
   my $session = delete $args->{session};
   my $event   = delete $args->{event};
