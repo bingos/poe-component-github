@@ -4,8 +4,8 @@ use Test::More;
 
 my @modules = qw(
   POE::Component::Github
-  POE::Component::Github::URL::Role
-  POE::Component::Github::URL::Users
+  POE::Component::Github::Request::Role
+  POE::Component::Github::Request::Users
 );
 
 plan tests => scalar @modules;

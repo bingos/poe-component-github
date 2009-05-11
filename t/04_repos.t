@@ -17,7 +17,7 @@ pass("Okay the kernel returned");
 exit 0;
 
 sub _start {
-  $poe_kernel->post( $github->get_session_id, 'repositories', 'show', { event => '_github', user => 'bingos' }, );
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'list', { event => '_github', user => 'bingos' }, );
   return;
 }
 

@@ -6,6 +6,8 @@ use POE::Component::Client::HTTP;
 use HTTP::Request::Common;
 use Algorithm::FloodControl;
 use JSON::Any;
+use Class::MOP;
+use Module::Pluggable search_path => ['POE::Component::Github::Request'], except => 'POE::Component::Github::Request::Role';
 use vars qw($VERSION);
 
 $VERSION = '0.02';
@@ -77,6 +79,7 @@ sub START {
 	Alias           => $self->_http_alias,
 	FollowRedirects => 2,
   );
+  Class::MOP::load_class($_) for $self->plugins();
   return;
 }
 
@@ -99,14 +102,15 @@ event user => sub {
   # check stuff
   # build url
   $args->{cmd} = lc $cmd;
-  SWITCH: {
-    if ( $args->{cmd} =~ /^follow(ers|ing)$/ ) {
-      $args->{url} = 'http://' . join '/', $self->url_path, 'user', 'show', $args->{user}, $args->{cmd};
-      last SWITCH;
-    }
-    $args->{url} = 'http://' . join '/', $self->url_path, 'user', $args->{cmd}, $args->{user};
-  }
-  warn $args->{url}, "\n";
+  my $req = POE::Component::Github::Request::Users->new(
+	api_url  => $self->url_path,
+	cmd      => $args->{cmd},
+	login    => $args->{login} || $self->login,
+	token    => $args->{token} || $self->token,
+	user     => $args->{user},
+	auth     => 0,
+  );
+  $args->{req} = $req->request();
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );
@@ -125,8 +129,16 @@ event repositories => sub {
   # check stuff
   # build url
   $args->{cmd} = lc $cmd;
-  $args->{url} = 'http://' . join '/', $self->url_path, 'repos', $args->{cmd}, $args->{user};
-  warn $args->{url}, "\n";
+  my $req = POE::Component::Github::Request::Repositories->new(
+	api_url  => $self->url_path,
+	cmd      => $args->{cmd},
+	login    => $args->{login} || $self->login,
+	token    => $args->{token} || $self->token,
+	user     => $args->{user},
+	repo	 => $args->{repo},
+	auth     => 0,
+  );
+  $args->{req} = $req->request();
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );
@@ -141,11 +153,12 @@ event _dispatch_cmd => sub {
      return;
   }
   my $id = _allocate_identifier();
+  my $req = delete $args->{req};
   $kernel->post( 
     $self->_http_alias, 
     'request',
     '_response',
-    GET( $args->{url} ),
+    $req, 
     "$id",
   );
   $self->_requests->{ $id } = $args;
