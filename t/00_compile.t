@@ -8,6 +8,7 @@ my @modules = qw(
   POE::Component::Github::Request::Commits
   POE::Component::Github::Request::Users
   POE::Component::Github::Request::Repositories
+  POE::Component::Github::Request::Network
   POE::Component::Github::Request::Object
 );
 

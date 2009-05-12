@@ -20,5 +20,6 @@ requires 'POE::Component::Client::HTTP' => 0.88;
 requires 'JSON::Any' => 0;
 requires 'Module::Pluggable' => 0;
 requires 'HTTP::Request::Common' => 0;
+tests 't/*.t t/*/*.t';
 githubmeta;
 WriteAll();

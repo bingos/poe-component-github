@@ -113,7 +113,6 @@ event user => sub {
 	values   => $args->{values},
   );
   $args->{req} = $req->request();
-  warn $args->{req}->as_string;
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );
@@ -201,6 +200,36 @@ event object => sub {
 	sha      => $args->{sha},
   );
   $args->{req} = $req->request();
+  $args->{session} = $sender->ID;
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->yield( '_dispatch_cmd', $args );
+  return;
+};
+
+event network => sub {
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
+  my $args;
+  if ( ref $_[ARG1] eq 'HASH' ) {
+     $args = $_[ARG1];
+  }
+  else {
+     $args = { @_[ARG1..$#_] };
+  }
+  # check stuff
+  # build url
+  $args->{state} = $state;
+  $args->{cmd} = lc $cmd;
+  my $req = POE::Component::Github::Request::Network->new(
+	api_url  => $self->url_path,
+	cmd      => $args->{cmd},
+	user     => $args->{user},
+	repo	 => $args->{repo},
+	nethash	 => $args->{nethash},
+	start    => $args->{start},
+	end      => $args->{end},
+  );
+  $args->{req} = $req->request();
+  warn $args->{req}->as_string;
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );
