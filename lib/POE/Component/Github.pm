@@ -120,8 +120,6 @@ sub _validate_args {
      $args = { @_ };
   }
   # check stuff
-  use Data::Dump::Streamer qw(Dumper);
-  warn Dumper( $args );
   $args->{lc $_} = delete $args->{$_} for grep { $_ !~ /^_/ } keys %{ $args };
   delete $args->{postback} unless defined $args->{postback} and ref $args->{postback} eq 'POE::Session::AnonEvent';
   unless ( $args->{postback} ) {
