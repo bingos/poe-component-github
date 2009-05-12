@@ -15,7 +15,7 @@ has 'token' => ( is => 'ro', isa => 'Str', default => '' );
 # api
 has 'api_url' => ( is => 'ro', default => 'github.com/api/v2/json/');
 has 'scheme'  => ( is => 'ro', default => 'http://');
-has 'auth'    => ( is => 'ro', default => '');
+has 'auth_scheme'    => ( is => 'ro', default => 'https://');
 has 'values'  => ( is => 'ro', default => sub { { } } );
 
 no Moose::Role;

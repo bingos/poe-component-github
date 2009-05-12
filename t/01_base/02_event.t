@@ -8,28 +8,21 @@ use JSON::Any;
 use HTTP::Response;
 
 my $payload = {
-                      'users' => [
-                                   'bricas',
-                                   'Ovid',
-                                   'audreyt',
-                                   'rjbs',
-                                   'schwern',
-                                   'xantus',
-                                   'abh',
-                                   'acme',
-                                   'sungo',
-                                   'nothingmuch',
-                                   'dagolden',
-                                   'andk',
-                                   'rafl',
-                                   'miyagawa',
-                                   'AndyA',
-                                   'barbie',
-                                   'hinrik',
-                                   'perigrin',
-                                   'apocalypse'
-                                 ]
-};
+                      'user' => {
+                                  'location' => undef,
+                                  'followers_count' => 36,
+                                  'name' => 'Chris Williams',
+                                  'blog' => 'http://use.perl.org/~bingos/journal/',
+                                  'public_repo_count' => 98,
+                                  'login' => 'bingos',
+                                  'email' => '',
+                                  'created_at' => '2009/03/10 08:13:36 -0700',
+                                  'public_gist_count' => 1,
+                                  'id' => 62011,
+                                  'company' => undef,
+                                  'following_count' => 118
+                                }
+                    };
 
 my $httpd = Test::POE::Server::TCP->spawn(
 	address => '127.0.0.1',
@@ -57,13 +50,13 @@ sub _start {
 }
 
 sub httpd_registered {
-  $poe_kernel->post( $github->get_session_id, 'user', 'following', { event => '_github', user => 'bingos' }, );
+  $poe_kernel->post( $github->get_session_id, 'user', 'show', { event => '_github', user => 'bingos' }, );
   return;
 }
 
 sub httpd_client_input {
   my ($id,$input) = @_[ARG0,ARG1];
-  is( $input->uri->as_string, '/api/v2/json/user/show/bingos/following', 'The URI was right.' );
+  is( $input->uri->as_string, '/api/v2/json/user/show/bingos', 'The URI was right.' );
   my $resp = HTTP::Response->new( 200 );
   $resp->protocol('HTTP/1.1');
   $resp->content( JSON::Any->new->objToJson( $payload ) );

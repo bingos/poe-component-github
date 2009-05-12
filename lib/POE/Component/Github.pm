@@ -42,6 +42,18 @@ has token => (
     default => '',
 );
 
+has scheme => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => 'http://',
+);
+
+has auth_scheme => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => 'https://',
+);
+
 has url_path => (
     is      => 'ro',
     default => 'github.com/api/v2/json',
@@ -67,6 +79,11 @@ has _requests => (
     default => sub { { } },
 );
 
+has _shutdown => (
+    is => 'rw',
+    default => 0,
+);
+
 sub spawn {
   shift->new(@_);
 }
@@ -87,19 +104,46 @@ event shutdown => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $kernel->refcount_decrement( $self->get_session_id, __PACKAGE__ );
   $kernel->post( $self->_http_alias, 'shutdown' );
+  $self->_shutdown(1);
   return;
 };
 
-event user => sub {
-  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
+sub _validate_args {
+  my $self = shift;
+  my $sender = shift || return;
+  my $state = shift || return;
   my $args;
-  if ( ref $_[ARG1] eq 'HASH' ) {
-     $args = $_[ARG1];
+  if ( ref $_[0] eq 'HASH' ) {
+     $args = $_[0];
   }
   else {
-     $args = { @_[ARG1..$#_] };
+     $args = { @_ };
   }
   # check stuff
+  use Data::Dump::Streamer qw(Dumper);
+  warn Dumper( $args );
+  $args->{lc $_} = delete $args->{$_} for grep { $_ !~ /^_/ } keys %{ $args };
+  delete $args->{postback} unless defined $args->{postback} and ref $args->{postback} eq 'POE::Session::AnonEvent';
+  unless ( $args->{postback} ) {
+     unless ( $args->{event} ) {
+       warn "No 'event' specified for $state\n";
+       return;
+     }
+     if ( $args->{session} and my $ref = $poe_kernel->alias_resolve( $args->{session} ) ) {
+       $args->{session} = $ref->ID();
+     }
+     else {
+       $args->{session} = $sender->ID();
+     }
+  }
+  return $args;
+}
+
+event user => sub {
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
+  return if $self->_shutdown;
+  my $args = $self->_validate_args( $sender, $state, @_[ARG1..$#_] );
+  return unless $args;
   # build url
   $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
@@ -109,11 +153,9 @@ event user => sub {
 	login    => $args->{login} || $self->login,
 	token    => $args->{token} || $self->token,
 	user     => $args->{user},
-	auth     => 0,
 	values   => $args->{values},
   );
   $args->{req} = $req->request();
-  $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );
   return;
@@ -121,14 +163,10 @@ event user => sub {
 
 event repositories => sub {
   my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
-  my $args;
-  if ( ref $_[ARG1] eq 'HASH' ) {
-     $args = $_[ARG1];
-  }
-  else {
-     $args = { @_[ARG1..$#_] };
-  }
+  return if $self->_shutdown;
   # check stuff
+  my $args = $self->_validate_args( $sender, $state, @_[ARG1..$#_] );
+  return unless $args;
   # build url
   $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
@@ -139,7 +177,6 @@ event repositories => sub {
 	token    => $args->{token} || $self->token,
 	user     => $args->{user},
 	repo	 => $args->{repo},
-	auth     => 0,
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
@@ -150,14 +187,10 @@ event repositories => sub {
 
 event commits => sub {
   my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
-  my $args;
-  if ( ref $_[ARG1] eq 'HASH' ) {
-     $args = $_[ARG1];
-  }
-  else {
-     $args = { @_[ARG1..$#_] };
-  }
+  return if $self->_shutdown;
   # check stuff
+  my $args = $self->_validate_args( $sender, $state, @_[ARG1..$#_] );
+  return unless $args;
   # build url
   $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
@@ -179,14 +212,10 @@ event commits => sub {
 
 event object => sub {
   my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
-  my $args;
-  if ( ref $_[ARG1] eq 'HASH' ) {
-     $args = $_[ARG1];
-  }
-  else {
-     $args = { @_[ARG1..$#_] };
-  }
+  return if $self->_shutdown;
   # check stuff
+  my $args = $self->_validate_args( $sender, $state, @_[ARG1..$#_] );
+  return unless $args;
   # build url
   $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
@@ -208,14 +237,10 @@ event object => sub {
 
 event network => sub {
   my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
-  my $args;
-  if ( ref $_[ARG1] eq 'HASH' ) {
-     $args = $_[ARG1];
-  }
-  else {
-     $args = { @_[ARG1..$#_] };
-  }
+  return if $self->_shutdown;
   # check stuff
+  my $args = $self->_validate_args( $sender, $state, @_[ARG1..$#_] );
+  return unless $args;
   # build url
   $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
@@ -237,14 +262,10 @@ event network => sub {
 
 event issues => sub {
   my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
-  my $args;
-  if ( ref $_[ARG1] eq 'HASH' ) {
-     $args = $_[ARG1];
-  }
-  else {
-     $args = { @_[ARG1..$#_] };
-  }
+  return if $self->_shutdown;
   # check stuff
+  my $args = $self->_validate_args( $sender, $state, @_[ARG1..$#_] );
+  return unless $args;
   # build url
   $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
@@ -257,6 +278,7 @@ event issues => sub {
 	id       => $args->{id},
 	label    => $args->{label},
 	state    => $args->{state},
+	values   => $args->{values},
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
@@ -304,8 +326,13 @@ event _response => sub {
         $args->{data} = $self->json->jsonToObj($json);
      }
   }
-  my $session = delete $args->{session};
-  my $event   = delete $args->{event};
+  my $postback = delete $args->{postback};
+  if ( $postback ) {
+    $postback->( $args );
+    return;
+  }
+  my $session  = delete $args->{session};
+  my $event    = delete $args->{event};
   $kernel->post( $session, $event, $args );
   $kernel->refcount_decrement( $session, __PACKAGE__ );
   return;
@@ -317,3 +344,94 @@ no MooseX::POE;
 
 'Moooooooooooose!';
 __END__
+
+=head1 NAME
+
+POE::Component::Github - A POE component for the Github API
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+POE::Component::Github is a L<POE> component that provides asynchronous access to the Github API L<http://develop.github.com/>
+to other POE sessions or components. It was inspired by L<Net::Github>.
+
+The component handles communicating with the Github API and will parse the JSON data returned into perl data structures for you.
+
+The component also implements flood control to ensure that no more than 60 requests are made per minute ( which is the current
+limit ).
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item C<spawn>
+
+Spawns a new POE::Component::Github session and returns an object. Takes a number of optional parameters:
+
+  'login', provide a default login name to use for authenticated requests;
+  'token', provide a default Github API token to use for authenticated requests;
+
+=back
+
+=head1 METHODS
+
+The following methods are available from the object returned by C<spawn>.
+
+=over
+
+=item C<get_session_id>
+
+Returns the POE session ID of the component's session.
+
+=item C<yield>
+
+Send an event to the component's session.
+
+=back
+
+=head1 INPUT EVENTS
+
+These are events that the component will accept. The format of all events is:
+
+  $poe_kernel->post( POCO_GITHUB, EVENT, COMMAND, HASHREF_OF_OPTIONS );
+
+or
+
+  $github_object->yield( EVENT, COMMAND, HASHREF_OF_OPTIONS );
+
+=over
+
+=item C<
+
+=back
+
+=head1 OUTPUT EVENTS
+
+=head1 AUTHOR
+
+Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
+
+=head1 KUDOS
+
+Fayland for L<Net::Github> and doing the dog-work of translating the Github API.
+
+Chris C<perigrin> Prather for L<MooseX::POE>
+
+Github L<http://github.com/>
+
+=head1 LICENSE
+
+Copyright E<copy> Chris Williams
+
+This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
+
+=head1 SEE ALSO
+
+L<http://develop.github.com/>
+
+L<Net::Github>
+
+L<MooseX::POE>
+
+=cut

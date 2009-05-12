@@ -39,24 +39,6 @@ has user => (
   default  => '',
 );
 
-#Users
-#  - public ->
-#       - search - user/search/:search
-#       - show   - user/show/:username
-#       - followers - user/show/:user/followers
-#       - following - user/show/:user/following
-#  - authenticated ->
-#       - show - user/show/:username
-#       - update - user/show/:username
-#       - follow - user/follow/:user
-#       - unfollow - user/unfollow/:user
-#       - pub_keys - user/keys
-#       - add_key - user/key/add
-#       - remove_key - user/key/remove
-#       - emails - user/emails
-#       - add_email - user/email/add
-#       - remove_email - user/email/remove
-
 sub request {
   my $self = shift;
   # Work out if authenticated is required or not
@@ -68,20 +50,20 @@ sub request {
        # Simple stuff no values required.
        my $data = [ 'login' => $self->login, 'token' => $self->token ];
        if ( $self->cmd =~ /^(show|follow|unfollow|pub_keys|emails)$/ ) {
-	  my $url = 'https://' . join '/', $self->api_url, 'user';
+	  my $url = $self->auth_scheme . join '/', $self->api_url, 'user';
 	  return POST( join('/', $url, 'keys'), $data ) if $self->cmd eq 'pub_keys';
 	  return POST( join('/', $url, 'emails' ), $data ) if $self->cmd eq 'emails';
 	  return POST( join('/', $url, $self->cmd, $self->user ), $data );
        }
        # These have values to pass
        if ( $self->cmd eq 'update' ) {
-	  my $url = 'https://' . join '/', $self->api_url, 'user';
+	  my $url = $self->auth_scheme . join '/', $self->api_url, 'user';
 	  my $values = $self->values;
 	  push @{ $data }, ( "values[$_]", $values->{$_} ) for keys %{ $values };
 	  return POST( join('/', $url, 'show', $self->user), $data );
        }
        if ( $self->cmd =~ /^(add_key|remove_key|add_email|remove_email)$/ ) {
-	  my $url = 'https://' . join '/', $self->api_url, 'user';
+	  my $url = $self->auth_scheme . join '/', $self->api_url, 'user';
 	  push @{ $data }, %{ $self->values };
 	  my ($action,$cmd) = split /\_/, $self->cmd;
 	  return POST( join('/', $url, $cmd, $action ), $data );
