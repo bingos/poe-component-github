@@ -101,7 +101,7 @@ event user => sub {
   }
   # check stuff
   # build url
-  $args->{state} = $state;
+  $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Users->new(
 	api_url  => $self->url_path,
@@ -130,7 +130,7 @@ event repositories => sub {
   }
   # check stuff
   # build url
-  $args->{state} = $state;
+  $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Repositories->new(
 	api_url  => $self->url_path,
@@ -159,7 +159,7 @@ event commits => sub {
   }
   # check stuff
   # build url
-  $args->{state} = $state;
+  $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Commits->new(
 	api_url  => $self->url_path,
@@ -188,7 +188,7 @@ event object => sub {
   }
   # check stuff
   # build url
-  $args->{state} = $state;
+  $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Object->new(
 	api_url  => $self->url_path,
@@ -217,7 +217,7 @@ event network => sub {
   }
   # check stuff
   # build url
-  $args->{state} = $state;
+  $args->{_state} = $state;
   $args->{cmd} = lc $cmd;
   my $req = POE::Component::Github::Request::Network->new(
 	api_url  => $self->url_path,
@@ -229,7 +229,36 @@ event network => sub {
 	end      => $args->{end},
   );
   $args->{req} = $req->request();
-  warn $args->{req}->as_string;
+  $args->{session} = $sender->ID;
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->yield( '_dispatch_cmd', $args );
+  return;
+};
+
+event issues => sub {
+  my ($kernel,$self,$state,$sender,$cmd) = @_[KERNEL,OBJECT,STATE,SENDER,ARG0];
+  my $args;
+  if ( ref $_[ARG1] eq 'HASH' ) {
+     $args = $_[ARG1];
+  }
+  else {
+     $args = { @_[ARG1..$#_] };
+  }
+  # check stuff
+  # build url
+  $args->{_state} = $state;
+  $args->{cmd} = lc $cmd;
+  my $req = POE::Component::Github::Request::Issues->new(
+	api_url  => $self->url_path,
+	cmd      => $args->{cmd},
+	user     => $args->{user},
+	repo	 => $args->{repo},
+	search   => $args->{search},
+	id       => $args->{id},
+	label    => $args->{label},
+	state    => $args->{state},
+  );
+  $args->{req} = $req->request();
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
   $kernel->yield( '_dispatch_cmd', $args );
@@ -268,7 +297,7 @@ event _response => sub {
   }
   else {
      my $json = $resp->content();
-     if ( $args->{state} eq 'object' and $args->{cmd} eq 'raw' ) {
+     if ( $args->{_state} eq 'object' and $args->{cmd} eq 'raw' ) {
         $args->{data} = $json;
      }
      else {
