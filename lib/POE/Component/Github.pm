@@ -398,11 +398,110 @@ or
 
   $github_object->yield( EVENT, COMMAND, HASHREF_OF_OPTIONS );
 
+Where C<EVENT> is either C<user>, C<repositories>, C<commits>, C<object>, C<issues> or C<network>.
+
+Where authentication is required it will be indicated. This may be either provided during C<spawn>
+or provided as arguments to each command. You may obtain the token for your Github account from
+https://github.com/account
+
+Three options are common to all commands, C<event>, C<session> and <postback>.
+
 =over
 
-=item C<
+=item C<event>
+
+The name of the event in the requesting session to send the results. Mandatory unless C<postback> is specified.
+
+=item C<session>
+
+Specify that an alternative session receive the results C<event> instead, purely optional, the default is to send
+to the requesting session.
+
+=item C<postback>
+
+Instead of specifying an C<event>, one may specify a L<POE::Session> C<postback> instead. See the docs for L<POE::Session>
+for more details.
 
 =back
+
+=head2 User API
+
+Searching users, getting user information and managing authenticated user account information.
+
+Send the event C<user> with one of the following commands:
+
+=over
+
+=item C<search>
+
+Search for users. Provide the parameter C<user> to search for.
+  
+  $poe_kernel->post( $github->get_session_id, 
+	'user', 'search', { event => '_search', user => 'moocow' } );
+
+=item C<show>
+
+Show extended information about a user. Provide the parameter C<user> to query.
+
+  $poe_kernel->post( $github->get_session_id, 
+	'user', 'show', { event => '_show', user => 'moocow' } );
+
+If authentication credentials are provided a C<show> on your own C<user> will have extra extended information
+regarding disk usage etc.
+
+=item C<following>
+
+Obtain a list of the people a C<user> is following. Provide the parameter C<user> to query.
+
+  $poe_kernel->post( $github->get_session_id, 
+	'user', 'following', { event => '_following', user => 'moocow' } );
+
+=item C<followers>
+
+Obtain a list of the people who are following a C<user>. Provide the parameter C<user> to query.
+
+  $poe_kernel->post( $github->get_session_id, 
+	'user', 'followers', { event => '_followers', user => 'moocow' } );
+
+=back
+
+These following commands require authentication:
+
+Where data values are required these should be passed via the C<values> parameter which should be a hashref of
+key/value pairs.
+
+=over
+
+=item C<update>
+
+Update your user information. Provide name, email, blog, company, location as keys to C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 
+	'user', 'update', 
+	  { 
+	    event  => '_update', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    values => 
+	    {
+		name     => 'Mr. Cow',
+		location => 'The Farm',
+		email    => 'moocow@moo.cow',
+	    },
+          } 
+  );
+
+=back
+
+=head2 Repository API
+
+=head2 Commit API
+
+=head2 Object API
+
+=head2 Issues API
+
+=head2 Network API
 
 =head1 OUTPUT EVENTS
 
