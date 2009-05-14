@@ -985,6 +985,43 @@ Get the contents of a blob (can be tree, file or commits). Provide C<user>, C<re
 
 =head2 Network API
 
+L<http://develop.github.com/p/network.html>
+
+The ( Not So ) Secret Network API 
+
+Send the event C<network> with one of the following commands:
+
+=over
+
+=item C<network_meta>
+
+Provide C<user> and C<repo>.
+
+  $poe_kernel->post( $github->get_session_id, 'network', 'network_meta',
+	  { 
+	    event => '_network', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	  } 
+  );
+
+=item C<network_data_chunk>
+
+Provide C<user> and C<repo>, and C<nethash>, optionally C<start> and C<end>.
+
+  $poe_kernel->post( $github->get_session_id, 'network', 'network_data_chunk',
+	  { 
+	    event => '_network', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	    nethash  => $nethash,
+	    start    => $start,
+	    end      => $end,
+	  } 
+  );
+
+=back
+
 =head1 OUTPUT EVENTS
 
 =head1 AUTHOR
