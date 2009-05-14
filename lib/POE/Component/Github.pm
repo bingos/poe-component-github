@@ -931,6 +931,56 @@ Show a specific commit. Provide C<user>, C<repo> and C<commit>.
 
 =head2 Object API
 
+L<http://develop.github.com/p/object.html>
+
+Query objects on repositories
+
+Send the event C<object> with one of the following commands:
+
+=over
+
+=item C<tree>
+
+Get the contents of a tree by tree sha. Provide C<user>, C<repo> and C<tree_sha>.
+
+  $poe_kernel->post( $github->get_session_id, 'object', 'tree',
+	  { 
+	    event => '_tree', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	    tree_sha => 'f7a5de2e224ec94182a3c2c081f4e7f4df70da4',
+	  } 
+  );
+
+=item C<blob>
+
+Can get the data about a blob by tree sha and path. Provide C<user>, C<repo>, C<tree_sha> and C<path>.
+
+  $poe_kernel->post( $github->get_session_id, 'object', 'blob',
+	  { 
+	    event => '_blob', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	    tree_sha => 'f7a5de2e224ec94182a3c2c081f4e7f4df70da4',
+	    path     => 'herd.txt',
+	  } 
+  );
+
+=item C<raw>
+
+Get the contents of a blob (can be tree, file or commits). Provide C<user>, C<repo> and C<tree_sha> or C<sha>
+
+  $poe_kernel->post( $github->get_session_id, 'object', 'raw',
+	  { 
+	    event => '_raw', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	    tree_sha => 'f7a5de2e224ec94182a3c2c081f4e7f4df70da4',
+	  } 
+  );
+
+=back
+
 =head2 Issues API
 
 =head2 Network API
