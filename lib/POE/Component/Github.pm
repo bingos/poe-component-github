@@ -879,6 +879,56 @@ Remove a collaborator from one of your repositories. Provide C<repo> and the C<u
 
 =head2 Commit API
 
+L<http://develop.github.com/p/commits.html>
+
+Query commits on repositories
+
+Send the event C<commits> with one of the following commands:
+
+=over
+
+=item C<branch>
+
+List commits on a branch. Provide C<user>, C<repo> and C<branch>. The default for C<branch> is C<master> if not supplied.
+
+  $poe_kernel->post( $github->get_session_id, 'commits', 'branch',
+	  { 
+	    event => '_branch', 
+	    user  => 'moocow',
+	    repo  => 'the-barn',
+	    branch => 'master', # default is 'master' if not supplied.
+	  } 
+  );
+
+=item C<file>
+
+List commits for a file on a branch. Provide C<user>, C<repo> and C<branch>. The default for C<branch> is C<master> if not supplied.
+
+  $poe_kernel->post( $github->get_session_id, 'commits', 'file',
+	  { 
+	    event => '_file', 
+	    user  => 'moocow',
+	    repo  => 'the-barn',
+	    branch => 'master', # default is 'master' if not supplied.
+	    file => 'herd.txt',
+	  } 
+  );
+
+=item C<commit>
+
+Show a specific commit. Provide C<user>, C<repo> and C<commit>.
+
+  $poe_kernel->post( $github->get_session_id, 'commits', 'commit',
+	  { 
+	    event => '_commit', 
+	    user  => 'moocow',
+	    repo  => 'the-barn',
+	    commit => '5071bf9fbfb81778c456d62e111440fdc776f76c',
+	  } 
+  );
+
+=back
+
 =head2 Object API
 
 =head2 Issues API
