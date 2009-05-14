@@ -154,7 +154,7 @@ event user => sub {
 	values   => $args->{values},
   );
   $args->{req} = $req->request();
-  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
   return;
 };
@@ -175,10 +175,12 @@ event repositories => sub {
 	token    => $args->{token} || $self->token,
 	user     => $args->{user},
 	repo	 => $args->{repo},
+	values   => $args->{values},
   );
   $args->{req} = $req->request();
+  warn $args->{req}->as_string;
   $args->{session} = $sender->ID;
-  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
   return;
 };
@@ -203,7 +205,7 @@ event commits => sub {
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
-  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
   return;
 };
@@ -228,7 +230,7 @@ event object => sub {
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
-  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
   return;
 };
@@ -253,7 +255,7 @@ event network => sub {
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
-  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
   return;
 };
@@ -280,7 +282,7 @@ event issues => sub {
   );
   $args->{req} = $req->request();
   $args->{session} = $sender->ID;
-  $kernel->refcount_increment( $args->{session}, __PACKAGE__ );
+  $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
   return;
 };
@@ -404,7 +406,7 @@ Where authentication is required it will be indicated. This may be either provid
 or provided as arguments to each command. You may obtain the token for your Github account from
 https://github.com/account
 
-Three options are common to all commands, C<event>, C<session> and <postback>.
+Three options are common to all commands, C<event>, C<session> and C<postback>.
 
 =over
 
@@ -425,6 +427,8 @@ for more details.
 =back
 
 =head2 User API
+
+L<http://develop.github.com/p/users.html>
 
 Searching users, getting user information and managing authenticated user account information.
 
@@ -476,8 +480,7 @@ key/value pairs.
 
 Update your user information. Provide name, email, blog, company, location as keys to C<values>.
 
-  $poe_kernel->post( $github->get_session_id, 
-	'user', 'update', 
+  $poe_kernel->post( $github->get_session_id, 'user', 'update',
 	  { 
 	    event  => '_update', 
 	    login  => 'moocow',
@@ -491,9 +494,388 @@ Update your user information. Provide name, email, blog, company, location as ke
           } 
   );
 
+=item C<follow>
+
+Follow a particular C<user>. Provide the parameter C<user> to follow.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'follow',
+	  { 
+	    event => '_follow', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user => 'pigdog' 
+	  } 
+  );
+
+=item C<unfollow>
+
+Stop following a particular C<user>. Provide the parameter C<user> to unfollow.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'unfollow',
+	  { 
+	    event => '_unfollow', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user => 'pigdog' 
+	  } 
+  );
+
+=item C<pub_keys>
+
+List your public keys.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'pub_keys',
+	  { 
+	    event => '_pubkeys', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	  } 
+  );
+
+=item C<add_key>
+
+Add a public key. Requires a C<name> and the C<key> passed as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'add_key',
+	  { 
+	    event => '_addkey', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    values => 
+	    {
+		name     => 'My Public Key',
+		'key'	 => $some_public_key,
+	    },
+	  } 
+  );
+
+=item C<remove_key>
+
+Removes a public key. Requires a key C<id> passed as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'remove_key',
+	  { 
+	    event => '_removekey', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    values => 
+	    {
+		id	 => $key_id,
+	    },
+	  } 
+  );
+
+=item C<emails>
+
+List your emails.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'emails',
+	  { 
+	    event => '_emails', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	  } 
+  );
+
+=item C<add_email>
+
+Adds an email. Requires an C<email> passed as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'add_email',
+	  { 
+	    event => '_addemail', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    values => 
+	    {
+		email	 => 'moocow@thefarm.cow',
+	    },
+	  } 
+  );
+
+=item C<remove_email>
+
+Removes an existing email. Requires an C<email> passed as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'user', 'remove_email',
+	  { 
+	    event => '_removeemail', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    values => 
+	    {
+		email	 => 'moocow@thefarm.cow',
+	    },
+	  } 
+  );
+
 =back
 
 =head2 Repository API
+
+L<http://develop.github.com/p/repo.html>
+
+Searching repositories, getting repository information and managing authenticated repository information.
+
+Send the event C<repositories> with one of the following commands:
+
+=over
+
+=item C<search>
+
+Search for a repository. Provide the parameter C<user> to search for.
+
+   $poe_kernel->post( $github->get_session_id,
+         'repositories', 'search', { event => '_search', repo => 'the-barn' } );
+
+=item C<show>
+
+To look at more in-depth information for a repository. Provide C<user> and C<repo> for the repository.
+
+   $poe_kernel->post( $github->get_session_id,
+         'repositories', 'show', { event => '_show', user => 'moocow', repo => 'the-barn' } );
+
+
+=item C<list>
+
+List out all the repositories for a user. Provide the C<user> to look at.
+
+   $poe_kernel->post( $github->get_session_id,
+         'repositories', 'list', { event => '_list', user => 'moocow' } );
+
+=item C<network>
+
+Look at the full network for a repository. Provide the C<user> and C<repo>.
+
+   $poe_kernel->post( $github->get_session_id,
+         'repositories', 'network', { event => '_network', user => 'moocow', repo => 'the-barn' } );
+
+=item C<tags>
+
+List the tags for a repository. Provide the C<user> and C<repo>.
+
+   $poe_kernel->post( $github->get_session_id,
+         'repositories', 'tags', { event => '_tags', user => 'moocow', repo => 'the-barn' } );
+
+=item C<branches>
+
+List the branches for a repository. Provide the C<user> and C<repo>.
+
+   $poe_kernel->post( $github->get_session_id,
+         'repositories', 'branches', { event => '_branches', user => 'moocow', repo => 'the-barn' } );
+
+=item C<collaborators>
+
+List the collaborators for a repository. Provide the C<user> and C<repo>.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'collaborators',
+	  { 
+	    event => '_collaborators', 
+	    user  => 'moocow',
+	    repo  => 'the-barn',
+	  } 
+  );
+
+=back
+
+These following commands require authentication:
+
+Where data values are required these should be passed via the C<values> parameter which should be a hashref of
+key/value pairs.
+
+=over
+
+=item C<watch>
+
+Start watching a repository. Provide the C<user> and C<repo> to watch.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'watch',
+	  { 
+	    event => '_watch', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-field',
+	  } 
+  );
+
+=item C<unwatch>
+
+Stop watching a repository. Provide the C<user> and C<repo> to unwatch.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'unwatch',
+	  { 
+	    event => '_unwatch', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-field',
+	  } 
+  );
+
+=item C<fork>
+
+Fork a repository. Provide the C<user> and C<repo> to fork.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'fork',
+	  { 
+	    event => '_fork', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-field',
+	  } 
+  );
+
+=item C<create>
+
+Create a new repository. 
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'create',
+	  { 
+	    event => '_create', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    values => 
+	    {
+		name 		=> 'the-meadow',
+		description 	=> 'The big meadow with the stream',
+		homepage 	=> 'http://moo.cow/meadow/'
+		public 		=> 1,	# Or 0 for private
+	    },
+	  } 
+  );
+
+=item C<delete>
+
+Delete one of your repositories. Provide C<repo>. The first return from this will contain a C<delete_token>.
+Submit the delete request again, passing the C<delete_token> in C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'delete',
+	  { 
+	    event => '_delete_token', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	  } 
+  );
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'delete',
+	  { 
+	    event => '_delete', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	    values => 
+	    {
+		delete_token 	=> $delete_token,
+	    },
+	  } 
+  );
+
+=item C<set_private>
+
+Make a public repository private. Provide the C<repo> to make private.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'set_private',
+	  { 
+	    event => '_set_private', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	  } 
+  );
+
+=item C<set_public>
+
+Make a private repository public. Provide the C<repo> to make public.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'set_public',
+	  { 
+	    event => '_set_public', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	  } 
+  );
+
+=item C<deploy_keys>
+
+List the deploy keys for a repository. Provide the C<repo>.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'deploy_keys',
+	  { 
+	    event => '_deploy_keys', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	  } 
+  );
+
+=item C<add_deploy_key>
+
+Add a deploy key. Provide the C<repo> and the C<title> and C<key> as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'add_deploy_key',
+	  { 
+	    event => '_add_deploy_key', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	    values => 
+	    {
+		title => $title,
+		key   => $key,
+	    },
+	  } 
+  );
+
+=item C<remove_deploy_key>
+
+Remove a deploy key. Provide the C<repo> and the key id C<id> as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'remove_deploy_key',
+	  { 
+	    event => '_remove_deploy_key', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	    values => 
+	    {
+		id => $key_id,
+	    },
+	  } 
+  );
+
+=item C<add_collaborator>
+
+Add a collaborator to one of your repositories. Provide C<repo> and the C<user> to add.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'add_collaborator',
+	  { 
+	    event => '_add_collaborator', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	    user   => 'pigdog',
+	  } 
+  );
+
+=item C<remove_collaborator>
+
+Remove a collaborator from one of your repositories. Provide C<repo> and the C<user> to remove.
+
+  $poe_kernel->post( $github->get_session_id, 'repositories', 'remove_collaborator',
+	  { 
+	    event => '_remove_collaborator', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    repo   => 'the-meadow',
+	    user   => 'pigdog',
+	  } 
+  );
+
+=back
 
 =head2 Commit API
 
