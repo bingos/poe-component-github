@@ -983,6 +983,134 @@ Get the contents of a blob (can be tree, file or commits). Provide C<user>, C<re
 
 =head2 Issues API
 
+L<http://develop.github.com/p/issues.html>
+
+The API for GitHub Issues
+
+Send the event C<issues> with one of the following commands:
+
+=over
+
+=item C<search>
+
+Search for issues in a repo. Provide C<user> and C<repo>, the C<state> of issue to look for (open|closed) and the 
+C<search> term to look for.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'search',
+	  { 
+	    event => '_search', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	    state    => 'open',
+	    search   => 'broken door',
+	  } 
+  );
+
+=item C<list>
+
+Get a list of issues for a project. Provide C<user> and C<repo>.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'list',
+	  { 
+	    event => '_list', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	  } 
+  );
+
+=item C<view>
+
+Get data on an individual issue by number. Provide C<user> and C<repo> and C<id> of the issue.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'view',
+	  { 
+	    event => '_view', 
+	    user     => 'moocow',
+	    repo     => 'the-barn',
+	    id	     => $id,
+	  } 
+  );
+
+=back
+
+These following commands require authentication:
+
+Where data values are required these should be passed via the C<values> parameter which should be a hashref of
+key/value pairs.
+
+=over
+
+=item C<open>
+
+Open a new issue on a project. Provide C<user> and C<repo> and C<title> and C<body> as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'open',
+	  { 
+	    event => '_open', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    values => 
+	    {
+		title => 'There is no mud',
+		body  => 'There is no mud in the sty, a sty requires mud',
+	    },
+	  } 
+  );
+
+=item C<close>
+
+Close an existing issue on a project. Provide C<user> and C<repo> and the issue C<id>.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'close',
+	  { 
+	    event => '_close', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    id     => $issue_id,
+	  } 
+  );
+
+=item C<reopen>
+
+Reopen a closed  issue on a project. Provide C<user> and C<repo> and the issue C<id>.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'reopen',
+	  { 
+	    event => '_reopen', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    id     => $issue_id,
+	  } 
+  );
+
+=item C<edit>
+
+Edit an issue on a project. Provide C<user>, C<repo> and C<id>, and C<title> and C<body> as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'open',
+	  { 
+	    event => '_open', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    id     => $issue_id,
+	    values => 
+	    {
+		title => 'There is no mud',
+		body  => 'There is no mud in the sty, a sty requires mud',
+	    },
+	  } 
+  );
+
+=back
+
 =head2 Network API
 
 L<http://develop.github.com/p/network.html>
