@@ -1093,9 +1093,9 @@ Reopen a closed  issue on a project. Provide C<user> and C<repo> and the issue C
 
 Edit an issue on a project. Provide C<user>, C<repo> and C<id>, and C<title> and C<body> as C<values>.
 
-  $poe_kernel->post( $github->get_session_id, 'issues', 'open',
+  $poe_kernel->post( $github->get_session_id, 'issues', 'edit',
 	  { 
-	    event => '_open', 
+	    event => '_edit', 
 	    login  => 'moocow',
 	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
 	    user   => 'pigdog',
@@ -1105,6 +1105,57 @@ Edit an issue on a project. Provide C<user>, C<repo> and C<id>, and C<title> and
 	    {
 		title => 'There is no mud',
 		body  => 'There is no mud in the sty, a sty requires mud',
+	    },
+	  } 
+  );
+
+=item C<add_label>
+
+Add a label to an issue. Provide C<user>, C<repo> and C<id> and C<label>
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'add_label',
+	  { 
+	    event => '_add_label', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    id     => $issue_id,
+	    label  => $label,
+	  } 
+  );
+
+=item C<remove_label>
+
+Remove a label from an issue. Provide C<user>, C<repo> and C<id> and C<label>
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'remove_label',
+	  { 
+	    event => '_remove_label', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    id     => $issue_id,
+	    label  => $label,
+	  } 
+  );
+
+=item C<comment>
+
+Comment on an issue. Provide C<user>, C<repo> and C<id>. Provide C<comment> as C<values>.
+
+  $poe_kernel->post( $github->get_session_id, 'issues', 'comment',
+	  { 
+	    event => '_comment', 
+	    login  => 'moocow',
+	    token  => '54b5197d7f92f52abc5c7149b313cf51', # faked
+	    user   => 'pigdog',
+	    repo   => 'the-sty',
+	    id     => $issue_id,
+	    values => 
+	    {
+		comment => 'This is amazing',
 	    },
 	  } 
   );
