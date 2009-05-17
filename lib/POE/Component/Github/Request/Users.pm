@@ -85,3 +85,46 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 __END__
+
+=head1 NAME
+
+POE::Component::Github::Request::Users - Build HTTP::Request objects for Users API
+
+=head1 DESCRIPTION
+
+Builds HTTP::Request objects for the Users API.
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item C<new>
+
+Attributes:
+
+  cmd
+  user
+
+=back
+
+=head1 C<METHOD>
+
+=over
+
+=item C<request>
+
+Returns a L<HTTP::Request> object based on the data passed to C<new>.
+
+=back
+
+=head1 AUTHOR
+
+Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
+
+=head1 LICENSE
+
+Copyright E<copy> Chris Williams
+
+This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
+
+=cut

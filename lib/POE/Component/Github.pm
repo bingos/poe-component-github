@@ -178,7 +178,6 @@ event repositories => sub {
 	values   => $args->{values},
   );
   $args->{req} = $req->request();
-  warn $args->{req}->as_string;
   $args->{session} = $sender->ID;
   $kernel->refcount_increment( $args->{session}, __PACKAGE__ ) unless $args->{postback};
   $kernel->yield( '_dispatch_cmd', $args );
@@ -340,7 +339,7 @@ event _response => sub {
 
 no MooseX::POE;
 
-#__PACKAGE__->meta->make_immutable;
+__PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 
 'Moooooooooooose!';
 __END__
