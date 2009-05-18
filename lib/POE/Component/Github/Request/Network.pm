@@ -5,7 +5,7 @@ use warnings;
 use HTTP::Request::Common;
 use vars qw($VERSION);
 
-$VERSION = '0.02';
+$VERSION = '0.04';
 
 use Moose;
 use Moose::Util::TypeConstraints;
