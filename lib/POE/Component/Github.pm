@@ -325,6 +325,7 @@ event _response => sub {
         $args->{data} = $self->json->jsonToObj($json);
      }
   }
+  delete $args->{_state};
   my $postback = delete $args->{postback};
   if ( $postback ) {
     $postback->( $args );
@@ -437,6 +438,11 @@ https://github.com/account
 
 Three options are common to all commands, C<event>, C<session> and C<postback>.
 
+It is possible to send arbitary data with your query. If you are using C<postback> the best way to
+achieve this is using the normal postback mechanism. Otherwise you may provide C<underscore> prefixed
+keys in the hashref that you send with requests. These will be sent back with the results of your 
+request.
+
 =over
 
 =item C<event>
@@ -507,7 +513,7 @@ key/value pairs.
 
 =item C<update>
 
-Update your user information. Provide name, email, blog, company, location as keys to C<values>.
+Update your user information. Provide C<name>, C<email>, C<blog>, C<company>, location as keys to C<values>.
 
   $poe_kernel->post( $github->get_session_id, 'user', 'update',
 	  { 
@@ -652,7 +658,7 @@ Send the event C<repositories> with one of the following commands:
 
 =item C<search>
 
-Search for a repository. Provide the parameter C<user> to search for.
+Search for a repository. Provide the parameter C<repo> to search for.
 
    $poe_kernel->post( $github->get_session_id,
          'repositories', 'search', { event => '_search', repo => 'the-barn' } );
@@ -1231,6 +1237,38 @@ Provide C<user> and C<repo>, and C<nethash>, optionally C<start> and C<end>.
 =back
 
 =head1 OUTPUT EVENTS
+
+Events that the component sends back to your requesting session will have a HASHREF as C<ARG0> 
+( C<postback> requests will have this as the first item in the ARRAYREF in C<ARG1> ).
+
+Any arbitary data that you passed as C<underscore> prefixed keys will exist along with the
+following:
+
+  'data', contains the data that was returned from the API call, if successful.
+  'error', if there was a problem, this will exist and contain some text relating to the error.
+
+Example, this is returned by the C<SYNOPSIS>
+
+  {
+     'cmd' => 'show',
+     'user' => 'bingos',
+     'data' => {
+                'user' => {
+                           'location' => undef,
+                           'followers_count' => 37,
+                           'name' => 'Chris Williams',
+                           'blog' => 'http://use.perl.org/~bingos/journal/',
+                           'public_repo_count' => 100,
+                           'login' => 'bingos',
+                           'email' => '',
+                           'created_at' => '2009/03/10 08:13:36 -0700',
+                           'public_gist_count' => 1,
+                           'id' => 62011,
+                           'company' => undef,
+                           'following_count' => 129
+                          }
+               }
+  }
 
 =head1 AUTHOR
 
