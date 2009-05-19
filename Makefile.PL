@@ -19,6 +19,7 @@ requires 'POE' => '1.005';
 requires 'POE::Component::SSLify' => 0.15;
 requires 'POE::Component::Client::HTTP' => 0.88;
 requires 'JSON::Any' => 1.19;
+requires 'URI::Escape' => 3.29;
 requires 'JSON::XS' => 2.232 if can_cc();
 requires 'Module::Pluggable' => 3.9;
 requires 'HTTP::Request::Common' => 0;

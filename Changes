@@ -1,5 +1,8 @@
 Changelog for POE-Component-Github
 ==================================
 
+0.06	Tue May 19 10:20:35 BST 2009
+	- Added URI::Escape to the prereqs.
+
 0.02	Sun May 17 23:11:52 BST 2009
 	- Initial CPAN release
