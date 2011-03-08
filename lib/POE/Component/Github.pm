@@ -10,7 +10,7 @@ use Class::MOP;
 use Module::Pluggable search_path => ['POE::Component::Github::Request'], except => 'POE::Component::Github::Request::Role';
 use vars qw($VERSION);
 
-$VERSION = '0.06';
+$VERSION = '0.08';
 
 # Stolen from POE::Wheel. This is static data, shared by all
 my $current_id = 0;

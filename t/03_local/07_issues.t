@@ -59,7 +59,7 @@ sub httpd_registered {
 
 sub httpd_client_input {
   my ($id,$input) = @_[ARG0,ARG1];
-  is( $input->uri->as_string, '/api/v2/json/issues/list/bingos/poe-component-github/open', 'The URI was right.' );
+  is( $input->uri->path, '/api/v2/json/issues/list/bingos/poe-component-github/open', 'The URI was right.' );
   my $resp = HTTP::Response->new( 200 );
   $resp->protocol('HTTP/1.1');
   $resp->content( JSON::Any->new->objToJson( $payload ) );
