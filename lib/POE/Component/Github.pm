@@ -347,7 +347,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::Github - A POE component for the Github API
+POE::Component::Github - A POE component for the GitHub API
 
 =head1 SYNOPSIS
 
@@ -383,10 +383,10 @@ POE::Component::Github - A POE component for the Github API
 
 =head1 DESCRIPTION
 
-POE::Component::Github is a L<POE> component that provides asynchronous access to the Github API L<http://develop.github.com/>
-to other POE sessions or components. It was inspired by L<Net::Github>.
+POE::Component::Github is a L<POE> component that provides asynchronous access to the GitHub API L<http://develop.github.com/>
+to other POE sessions or components. It was inspired by L<Net::GitHub>.
 
-The component handles communicating with the Github API and will parse the JSON data returned into perl data structures for you.
+The component handles communicating with the GitHub API and will parse the JSON data returned into perl data structures for you.
 
 The component also implements flood control to ensure that no more than 60 requests are made per minute ( which is the current
 limit ).
@@ -400,7 +400,7 @@ limit ).
 Spawns a new POE::Component::Github session and returns an object. Takes a number of optional parameters:
 
   'login', provide a default login name to use for authenticated requests;
-  'token', provide a default Github API token to use for authenticated requests;
+  'token', provide a default GitHub API token to use for authenticated requests;
 
 =back
 
@@ -433,7 +433,7 @@ or
 Where C<EVENT> is either C<user>, C<repositories>, C<commits>, C<object>, C<issues> or C<network>.
 
 Where authentication is required it will be indicated. This may be either provided during C<spawn>
-or provided as arguments to each command. You may obtain the token for your Github account from
+or provided as arguments to each command. You may obtain the token for your GitHub account from
 https://github.com/account
 
 Three options are common to all commands, C<event>, C<session> and C<postback>.
@@ -1276,11 +1276,11 @@ Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
 
 =head1 KUDOS
 
-Fayland for L<Net::Github> and doing the dog-work of translating the Github API.
+Fayland for L<Net::GitHub> and doing the dog-work of translating the GitHub API.
 
 Chris C<perigrin> Prather for L<MooseX::POE>
 
-Github L<http://github.com/>
+GitHub L<http://github.com/>
 
 =head1 LICENSE
 
@@ -1292,7 +1292,7 @@ This module may be used, modified, and distributed under the same terms as Perl 
 
 L<http://develop.github.com/>
 
-L<Net::Github>
+L<Net::GitHub>
 
 L<MooseX::POE>
 
