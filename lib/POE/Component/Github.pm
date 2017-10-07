@@ -6,7 +6,7 @@ use POE::Component::Client::HTTP;
 use HTTP::Request::Common;
 use Algorithm::FloodControl;
 use JSON::Any;
-use Class::MOP;
+use Class::Load;
 use Module::Pluggable search_path => ['POE::Component::Github::Request'], except => 'POE::Component::Github::Request::Role';
 use vars qw($VERSION);
 
@@ -96,7 +96,7 @@ sub START {
 	Alias           => $self->_http_alias,
 	FollowRedirects => 2,
   );
-  Class::MOP::load_class($_) for $self->plugins();
+  Class::Load::load_class($_) for $self->plugins();
   return;
 }
 
